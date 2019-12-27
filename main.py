@@ -33,7 +33,7 @@ def _check_event(event):
 
 def main(event, context):
     _check_event(event)
-    _headers["Authorization"] = "Bearer {}".format(context['token']["access_token"]) # TODO: .token
+    _headers["Authorization"] = "Bearer {}".format(context.token["access_token"])
 
     cluster_id = event["queryStringParameters"].get("cluster_id")
     network_id = event["queryStringParameters"].get("network_id")
