@@ -32,7 +32,7 @@ def cluster_postgres_restore(backup_data, cluster_data, cluster_hosts_data, netw
             host_spec["configSpec"] = host["config"]
 
         if host.get("priority"):
-            host_spec["configSpec"] = host["priority"]
+            host_spec["priority"] = host["priority"]
         
         cluster_host_spec.append(host_spec)
 
