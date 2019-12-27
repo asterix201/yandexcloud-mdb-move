@@ -21,8 +21,7 @@ def cluster_postgres_restore(backup_data, cluster_data, cluster_hosts_data, netw
             "resources": host["resources"],
             "zoneId": host["zoneId"],
             "subnetId": subnet_id,
-            "assignPublicIp": host["assignPublicIp"],
-            "priority": host["priority"]
+            "assignPublicIp": host["assignPublicIp"]
         }
 
         # Optional features
@@ -31,6 +30,9 @@ def cluster_postgres_restore(backup_data, cluster_data, cluster_hosts_data, netw
         
         if host.get("config"):
             host_spec["configSpec"] = host["config"]
+
+        if host.get("priority"):
+            host_spec["configSpec"] = host["priority"]
         
         cluster_host_spec.append(host_spec)
 
@@ -64,3 +66,4 @@ def cluster_postgres_restore(backup_data, cluster_data, cluster_hosts_data, netw
 
         js = r.json()
         return js
+
