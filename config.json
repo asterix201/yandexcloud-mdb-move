@@ -2,7 +2,7 @@
   "scheme": "https",
   "vpc": {
     "api_url": "vpc.api.cloud.yandex.net",
-    "path": "vpc/v1/networks"
+    "path": "vpc/v1/subnets"
   },
   "operations": {
     "api_url": "operation.api.cloud.yandex.net",
@@ -18,11 +18,11 @@
         "path": "managed-postgresql/v1",
         "versions": {
           "get": {
-            "10": "postgresqlConfig_10",
-            "11": "postgresqlConfig_11",
+            "10": "postgresqlConfig10",
+            "11": "postgresqlConfig11",
             "12": "postgresqlConfig12",
-            "9.6": "postgresqlConfig_9_6",
-            "10_1c": "postgresqlConfig_10_1C"
+            "9.6": "postgresqlConfig96",
+            "10_1c": "postgresqlConfig101C"
           },
           "restore": {
             "10": "postgresqlConfig_10",
