@@ -1,0 +1,77 @@
+{
+  "scheme": "https",
+  "vpc": {
+    "api_url": "vpc.api.cloud.yandex.net",
+    "path": "vpc/v1/networks"
+  },
+  "operations": {
+    "api_url": "operation.api.cloud.yandex.net",
+    "path": "operations",
+    "wait": 120
+  },
+  "mdb": {
+    "api_url": "mdb.api.cloud.yandex.net",
+    "retries": 3,
+    "backoff_factor": 0.3,
+    "types": {
+      "postgresql": {
+        "path": "managed-postgresql/v1",
+        "versions": {
+          "get": {
+            "10": "postgresqlConfig_10",
+            "11": "postgresqlConfig_11",
+            "12": "postgresqlConfig12",
+            "9.6": "postgresqlConfig_9_6",
+            "10_1c": "postgresqlConfig_10_1C"
+          },
+          "restore": {
+            "10": "postgresqlConfig_10",
+            "11": "postgresqlConfig_11",
+            "12": "postgresqlConfig12",
+            "9.6": "postgresqlConfig_9_6",
+            "10_1c": "postgresqlConfig_10_1C"
+          }
+        }
+      },
+      "mongodb": {
+        "path": "managed-mongodb/v1",
+        "versions": {
+          "get": {
+            "3.6": "mongodbSpec36",
+            "4.0": "mongodbSpec40",
+            "4.2": "mongodbSpec42"
+          },
+          "restore": {
+            "3.6": "mongodbSpec_3_6",
+            "4.0": "mongodbSpec_4_0",
+            "4.2": "mongodbSpec_4_2"
+          }
+        }
+      },
+      "mysql": {
+        "path": "managed-mysql/v1",
+        "versions": {
+          "get": {
+            "5.7": "mysqlConfig57",
+            "8.0": "mysqlConfig80"
+          },
+          "restore": {
+            "5.7": "mysqlConfig_5_7",
+            "8.0": "mysqlConfig_8_0"
+          }
+        }
+      },
+      "redis": {
+        "path": "managed-redis/v1",
+        "versions": {
+          "get": {
+            "5.0": "redisConfig50"
+          },
+          "restore": {
+            "5.0": "redisConfig50"
+          }
+        }
+      }
+    }
+  }
+}
