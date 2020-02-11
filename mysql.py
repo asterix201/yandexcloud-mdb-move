@@ -1,57 +1,53 @@
-import requests
 import logging
-import json
 
-from requests.exceptions import BaseHTTPError
+import yandex.cloud.mdb.mysql.v1.cluster_service_pb2 as cluster_service
+import yandex.cloud.mdb.mysql.v1.cluster_service_pb2_grpc as cluster_service_grpc
 
-from config import cfg
+def restore_cluster(sdk, backup_data, cluster_data, cluster_hosts_data, network_id, subnet_id):
+    logging.info('Restoring cluster from backup %s', backup_data.id)
 
-def cluster_mysql_restore(backup_data, cluster_data, cluster_hosts_data, network_id, subnet_id, options, headers):
-    cluster_versions = options["versions"]
-    version_get = cluster_versions["get"][cluster_data["config"]["version"]]
-    effective_config = cluster_data["config"][version_get].get("effectiveConfig")
-    version_post = cluster_versions["restore"][cluster_data["config"]["version"]]
-    cluster_data["config"][version_post] = effective_config
-    cluster_data["configSpec"] = cluster_data["config"]
-    cluster_data.pop("config")
+    if cluster_data.config.version == "8.0":
+        config_spec = cluster_service.ConfigSpec(
+            access=cluster_data.config.access,
+            backup_window_start=cluster_data.config.backup_window_start,
+            version=cluster_data.config.version,
+            mysql_config_8_0=cluster_data.config.mysql_config_8_0.effective_config,
+            resources=cluster_data.config.resources,
+        )
+    elif cluster_data.config.version == "5.7":
+        config_spec = cluster_service.ConfigSpec(
+            access=cluster_data.config.access,
+            backup_window_start=cluster_data.config.backup_window_start,
+            version=cluster_data.config.version,
+            mysql_config_5_7=cluster_data.config.mysql_config_5_7.effective_config,
+            resources=cluster_data.config.resources,
+        )
 
-    cluster_host_spec = []
-    for host in cluster_hosts_data["hosts"]:
-        host_spec = {
-            "zoneId": host["zoneId"],
-            "subnetId": subnet_id,
-            "assignPublicIp": host["assignPublicIp"]
-        }
-        
-        cluster_host_spec.append(host_spec)
+    host_specs = [
+        cluster_service.HostSpec(
+            assign_public_ip=host.assign_public_ip,
+            subnet_id=subnet_id,
+            zone_id=host.zone_id,
+        )
+        for host in cluster_hosts_data.hosts
+    ]
 
-    data = {
-        "backupId": backup_data["id"],
-        "time": backup_data["createdAt"],
-        "name": cluster_data["name"],
-        "environment": cluster_data["environment"],
-        "networkId": network_id,
-        "folderId": cluster_data["folderId"],
-        "configSpec": cluster_data["configSpec"],
-        "hostSpecs": cluster_host_spec,
-        "description": cluster_data.get("description"),
-        "labels": cluster_data.get("labels"),
-    }
+    request = cluster_service.RestoreClusterRequest(
+        backup_id=backup_data.id,
+        config_spec=config_spec,
+        description=cluster_data.description,
+        environment=cluster_data.environment,
+        folder_id=cluster_data.folder_id,
+        host_specs=host_specs,
+        labels=cluster_data.labels,
+        name=cluster_data.name,
+        network_id=network_id,
+        time=backup_data.created_at,
+    )
 
-
-    url = f"{cfg['scheme']}://{cfg['mdb']['api_url']}/{options['path']}/clusters:restore"
-    logging.info("Restoring cluster")
-    with requests.Session() as s:
-        s.headers.update(headers)
-        try:
-            r = s.post(url, data=json.dumps(data))
-        except BaseHTTPError as e:
-            logging.error("Network error: %s" % e)
-            raise Exception("Network error: %s" % e)
-
-        if r.status_code != 200:
-            logging.error("Got status %s" % r.status_code)
-            raise Exception("Got status %s. Details: %s" % (r.status_code, r.text))
-
-        js = r.json()
-        return js
+    operation = sdk.client(cluster_service_grpc.ClusterServiceStub).Restore(request)
+    return operation.id
+    # return sdk.wait_operation_and_get_result(
+    #     operation,
+    #     meta_type=cluster_service.RestoreClusterMetadata,
+    # )
