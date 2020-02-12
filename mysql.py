@@ -3,7 +3,7 @@ import logging
 import yandex.cloud.mdb.mysql.v1.cluster_service_pb2 as cluster_service
 import yandex.cloud.mdb.mysql.v1.cluster_service_pb2_grpc as cluster_service_grpc
 
-def restore_cluster(sdk, backup_data, cluster_data, cluster_hosts_data, network_id, subnet_id):
+def restore_cluster(sdk, backup_data, cluster_data, cluster_hosts_data, subnets):
     logging.info('Restoring cluster from backup %s', backup_data.id)
 
     if cluster_data.config.version == "8.0":
@@ -26,10 +26,10 @@ def restore_cluster(sdk, backup_data, cluster_data, cluster_hosts_data, network_
     host_specs = [
         cluster_service.HostSpec(
             assign_public_ip=host.assign_public_ip,
-            subnet_id=subnet_id,
-            zone_id=host.zone_id,
+            subnet_id=subnets[i].id,
+            zone_id=subnets[i].zone_id,
         )
-        for host in cluster_hosts_data.hosts
+        for i, host in enumerate(cluster_hosts_data.hosts)
     ]
 
     request = cluster_service.RestoreClusterRequest(
@@ -41,7 +41,7 @@ def restore_cluster(sdk, backup_data, cluster_data, cluster_hosts_data, network_
         host_specs=host_specs,
         labels=cluster_data.labels,
         name=cluster_data.name,
-        network_id=network_id,
+        network_id=subnets[0].network_id,
         time=backup_data.created_at,
     )
 

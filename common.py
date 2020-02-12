@@ -3,6 +3,14 @@ import uuid
 
 from google.protobuf.field_mask_pb2 import FieldMask
 
+import yandex.cloud.vpc.v1.subnet_service_pb2 as subnet_service
+import yandex.cloud.vpc.v1.subnet_service_pb2_grpc as subnet_service_grpc
+
+def get_subnet(sdk, subnet_id):
+    request = subnet_service.GetSubnetRequest(
+        subnet_id=subnet_id,
+    )
+    return sdk.client(subnet_service_grpc.SubnetServiceStub).Get(request)
 
 def change_cluster_name(sdk, grpc, cluster_id, name=None):
     logging.info('Updating cluster {}'.format(cluster_id))

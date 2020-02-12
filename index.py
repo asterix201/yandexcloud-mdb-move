@@ -39,7 +39,6 @@ _restore_func = {
     "clickhouse": clickhouse_restore,
 }
 
-
 class GRPC():
     def __init__(self, cluster_pb, cluster_service, cluster_service_grpc):
         self.cluster_pb = cluster_pb
@@ -63,21 +62,19 @@ def _check_event(event):
     if not event["queryStringParameters"].get("cluster_id"):
         raise Exception("Function expects query parameter cluster_id")
 
-    if not event["queryStringParameters"].get("network_id"):
-        raise Exception("Function expects query parameter network_id")
-
-    if not event["queryStringParameters"].get("subnet_id"):
+    if not event["multiValueQueryStringParameters"].get("subnet_id"):
         raise Exception("Function expects query parameter subnet_id")
 
 
 def main(event, context):
     _check_event(event)
     cluster_id = event["queryStringParameters"].get("cluster_id")
-    network_id = event["queryStringParameters"].get("network_id")
-    subnet_id = event["queryStringParameters"].get("subnet_id")
     name = event["queryStringParameters"].get("new_name")
 
     sdk = yandexcloud.SDK() #(token=token)
+    subnets = []
+    for subnet_id in event["multiValueQueryStringParameters"].get("subnet_id"):
+        subnets.append(common.get_subnet(sdk, subnet_id))
 
     data_get_cluster = None
     for cluster_type, grpc in _cluster_types.items():
@@ -93,6 +90,9 @@ def main(event, context):
         raise Exception("Cluster %s not found" % cluster_id)
 
     data_get_hosts = common.list_cluster_hosts(sdk, grpc, cluster_id)
+    if len(data_get_hosts.hosts) != len(subnets):
+        raise Exception("Unsupported: got %d hosts and %d subnets" % (len(data_get_hosts.hosts), len(subnets)))
+
     data_latest_backup = common.latest_backup(common.list_backups(sdk, grpc, cluster_id))
     common.change_cluster_name(sdk, grpc, cluster_id, name)
 
@@ -103,11 +103,10 @@ def main(event, context):
         },
         'isBase64Encoded': False,
         'body': _restore_func[cluster_type](
-            sdk=sdk,
-            backup_data=data_latest_backup,
-            cluster_data=data_get_cluster,
-            cluster_hosts_data=data_get_hosts,
-            network_id=network_id,
-            subnet_id=subnet_id,
-        )
+                sdk=sdk,
+                backup_data=data_latest_backup,
+                cluster_data=data_get_cluster,
+                cluster_hosts_data=data_get_hosts,
+                subnets=subnets,
+            )
     }
