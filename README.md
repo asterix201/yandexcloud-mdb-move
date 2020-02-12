@@ -7,8 +7,10 @@
   * *Таймаут, c* - 300. Такой большой интервал нужен потому, что функция ожидает завершения операции переименования, прежде, чем восстанавливать кластер
   * *Сервисный аккаунт* - созданный ранее сервисный аккаунт
 # Запуск и тестирование:
-    curl -s -XPOST 'https://functions.yandexcloud.net/{function_id}?cluster_id={cluster_id}&network_id={network_id}&subnet_id={subnet_id}' -H "Authorization: Bearer $(yc iam create-token)"
+    curl -s -XPOST 'https://functions.yandexcloud.net/{function_id}?cluster_id={cluster_id}&subnet_id={subnet_id}' -H "Authorization: Bearer $(yc iam create-token)"
 Query-Параметры для запуска:
 1. *cluster_id* - ID изменяемого кластера
 1. (repeatable) *subnet_id* - ID подсети VPC, в которой будет располагаться новый кластер
 1. (optional) *new_name* - имя, под которым будет создан новый кластер. Без указания данного параметра, новый кластер будет называться, как и старый
+
+Выводом функции будет ID операции создавния нового кластера из бекапа, либо Python-исключение
